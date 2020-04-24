@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import { SquareBox } from './styles'
 
 export const SquareType = {
+  none: 0,
   x: 1,
   o: 2,
 }
