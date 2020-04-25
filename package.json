@@ -13,6 +13,8 @@
     "styled-components": "^5.1.0"
   },
   "scripts": {
+    "predeploy": "react-scripts build",
+    "deploy": "firebase deploy",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

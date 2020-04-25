@@ -107,14 +107,12 @@ export default function XTicTacToe() {
           newMatrix = updateMatrix(x, ...freeSquares[0])(matrix)
         }
       }
-
       const over = isGameOver(newMatrix)
       let freeNewSquares = getFreeSquares(newMatrix)
       setGameOver(over || !freeNewSquares.length)
       setIsUserTurn(true)
       setRound(prev => prev + 1)
       setMatrix(newMatrix)
-
     }
     if (!isUserTurn) {
       const over = isGameOver(matrix)
