@@ -73,30 +73,49 @@ export default function XTicTacToe() {
   const [matrix, setMatrix] = useState(Array(3).fill(Array(3).fill(none)))
   const [round, setRound] = useState(0)
   const [gameOver, setGameOver] = useState(false)
-  const [isUserTurn, setIsUserTurn] = useState(() => true)//randomBool())
-
-  const computerMove = useCallback(() => {
-    let isComputerFirst = round % 2 === 0
-    if (round === 0) {
-      setMatrix(updateMatrix(x, 1, 1))
-    } else {
-      setMatrix(prev => {
-        let freeSquares = getFreeSquares(prev)
-        if(!freeSquares.length) {
-          setGameOver(true)
-          return prev
-        }
-        let newMatrix = updateMatrix(x, ...freeSquares[0])(prev)
-        const over = isGameOver(newMatrix)
-        setGameOver(over)
-        setIsUserTurn(true)
-        setRound(prev => prev + 1)
-        return newMatrix
-      })
-    }
-  }, [round])
+  const [moves, setMoves] = useState([])
+  const [isUserTurn, setIsUserTurn] = useState(() => randomBool())
 
   useEffect(() => {
+    const computerMove = () => {
+      let isComputerFirst = round % 2 === 0
+      let freeSquares = getFreeSquares(matrix)
+      let newMatrix = matrix
+      if (!freeSquares.length) {
+        setGameOver(true)
+        return
+      }
+      if (isComputerFirst) {
+        if (round === 0) {
+          setMoves(prev => prev.concat([[1, 1]]))
+          newMatrix = updateMatrix(x, 1, 1)(matrix)
+        } else {
+          setMoves(prev => prev.concat([freeSquares[0]]))
+          newMatrix = updateMatrix(x, ...freeSquares[0])(matrix)
+        }
+      } else {
+        if (matrix[1][1] === none) {
+          const lastMove = moves[moves.length - 1]
+          let [i, j] = lastMove
+          let newI = i === 2 ? 0 : i === 0 ? 2 : i
+          let newJ = j === 2 ? 0 : j === 0 ? 2 : j
+          setMoves(prev => prev.concat([[newI, newJ]]))
+          newMatrix = updateMatrix(x, newI, newJ)(matrix)
+        }
+        else {
+          setMoves(prev => prev.concat([freeSquares[0]]))
+          newMatrix = updateMatrix(x, ...freeSquares[0])(matrix)
+        }
+      }
+
+      const over = isGameOver(newMatrix)
+      let freeNewSquares = getFreeSquares(newMatrix)
+      setGameOver(over || !freeNewSquares.length)
+      setIsUserTurn(true)
+      setRound(prev => prev + 1)
+      setMatrix(newMatrix)
+
+    }
     if (!isUserTurn) {
       const over = isGameOver(matrix)
       if (!over)
@@ -105,16 +124,16 @@ export default function XTicTacToe() {
         setGameOver(true)
       }
     }
-  }, [isUserTurn, computerMove, matrix])
-
+  }, [isUserTurn, matrix, round, moves])
 
   const onClick = ({ value, i, j }) => {
     if (value !== x && isUserTurn) {
       setMatrix(prev => {
+        setMoves(prev => prev.concat([[i, j]]))
         let newMatrix = updateMatrix(x, i, j)(prev)
         const over = isGameOver(newMatrix)
         setGameOver(over)
-        if(!over)
+        if (!over)
           setIsUserTurn(false)
         return newMatrix
       })
