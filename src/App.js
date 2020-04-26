@@ -5,10 +5,8 @@ import XTicTacToe from './componets/XTicTacToe'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <XTicTacToe />
-      </header>
+    <div className="App App-header">
+      <XTicTacToe />
     </div>
   );
 }

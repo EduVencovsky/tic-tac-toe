@@ -3,10 +3,15 @@ import PropTypes from 'prop-types'
 
 import Square from '../Square'
 import { SquareRow } from './styles'
+import useWindow from '../../hooks/useWindow'
 
-export default function TicTacToeBoard({ matrix, width, height, onClick }) {
+export default function TicTacToeBoard({ matrix, onClick }) {
+
+  const { width, height } = useWindow()
+  const size = (width > height ? height : width) / 1.5
+
   return (
-    <div style={{ width, height }}>
+    <div style={{ width: size + 'px', height: size + 'px' }}>
       {matrix.map((x, i) =>
         <SquareRow key={i}>
           {x.map((value, j) => (
@@ -19,11 +24,6 @@ export default function TicTacToeBoard({ matrix, width, height, onClick }) {
         </SquareRow>)}
     </div>
   )
-}
-
-TicTacToeBoard.defaultProps = {
-  width: '500px',
-  height: '500px',
 }
 
 TicTacToeBoard.propTypes = {
