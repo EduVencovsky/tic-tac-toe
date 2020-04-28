@@ -2,8 +2,40 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { SquareType } from '../Square'
 import { updateMatrix, delay, randomBool } from '../../utils'
 import TicTactToeBoard from '../TicTacToeBoard'
+import Header from '../Header'
 
 const { x, none } = SquareType
+
+// https://math.stackexchange.com/questions/3645659/chess-hourse-move-in-a-tic-tac-toe-board
+const hourseMove = (matrix, x, y) => {
+  let newX1 = (
+    (1 / 4) *
+    (
+      8 + (x ** 2) - (8 * x * y) + (y ** 2) - (x ** 3) + (2 * (x ** 2) * y) + (2 * x * (y ** 2)) - (y ** 3)
+    )
+  )
+  let newY1 = (
+    (1 / 4) *
+    (
+      4 + (7 * (x ** 2)) - (7 * (y ** 2)) - (3 * (x ** 3)) + (2 * (x ** 2) * y) - (2 * x * (y ** 2)) + (3 * (y ** 3))
+    )
+  )
+
+  let newX2 = (
+    (1 / 4) *
+    (
+      4 - (7 * (x ** 2)) + (7 * (y ** 2)) + (3 * (x ** 3)) - (2 * (x ** 2) * y) + (2 * x * (y ** 2)) - (3 * (y ** 3))
+    )
+  )
+  let newY2 = (
+    (1 / 4) *
+    (
+      8 - (x ** 2) + (8 * x * y) - (y ** 2) + (x ** 3) - (2 * (x ** 2) * y) - (2 * x * (y ** 2)) + (y ** 3)
+    )
+  )
+  const [newX, newY] = (matrix[newX1][newY1] === none ? [newX1, newY1] : [newX2, newY2])
+  return [newX, newY]
+}
 
 const getFreeSquares = matrix => {
   let freeSquares = []
@@ -69,12 +101,28 @@ const isGameOver = matrix => {
   return checkMatrix.some(i => i.every(j => j === x))
 }
 
+const defaultValues = {
+  matrix: Array(3).fill(Array(3).fill(none)),
+  round: 0,
+  gameOver: false,
+  moves: [],
+  isUserTurn: () => randomBool()
+}
+
 export default function XTicTacToe() {
-  const [matrix, setMatrix] = useState(Array(3).fill(Array(3).fill(none)))
-  const [round, setRound] = useState(0)
-  const [gameOver, setGameOver] = useState(false)
-  const [moves, setMoves] = useState([])
-  const [isUserTurn, setIsUserTurn] = useState(() => randomBool())
+  const [matrix, setMatrix] = useState(defaultValues.matrix)
+  const [round, setRound] = useState(defaultValues.round)
+  const [gameOver, setGameOver] = useState(defaultValues.gameOver)
+  const [moves, setMoves] = useState(defaultValues.moves)
+  const [isUserTurn, setIsUserTurn] = useState(defaultValues.isUserTurn)
+
+  const onReset = () => {
+    setMatrix(defaultValues.matrix)
+    setRound(defaultValues.round)
+    setGameOver(defaultValues.gameOver)
+    setMoves(defaultValues.moves)
+    setIsUserTurn(defaultValues.isUserTurn)
+  }
 
   useEffect(() => {
     const computerMove = () => {
@@ -90,8 +138,11 @@ export default function XTicTacToe() {
           setMoves(prev => prev.concat([[1, 1]]))
           newMatrix = updateMatrix(x, 1, 1)(matrix)
         } else {
-          setMoves(prev => prev.concat([freeSquares[0]]))
-          newMatrix = updateMatrix(x, ...freeSquares[0])(matrix)
+          const lastMove = moves[moves.length - 1]
+          let [i, j] = lastMove
+          const hourse = hourseMove(matrix, i, j)
+          setMoves(prev => prev.concat([hourse]))
+          newMatrix = updateMatrix(x, ...hourse)(matrix)
         }
       } else {
         if (matrix[1][1] === none) {
@@ -125,7 +176,7 @@ export default function XTicTacToe() {
   }, [isUserTurn, matrix, round, moves])
 
   const onClick = ({ value, i, j }) => {
-    if (value !== x && isUserTurn) {
+    if (value !== x && isUserTurn && !gameOver) {
       setMatrix(prev => {
         setMoves(prev => prev.concat([[i, j]]))
         let newMatrix = updateMatrix(x, i, j)(prev)
@@ -141,12 +192,7 @@ export default function XTicTacToe() {
 
   return (
     <div>
-      <p>
-        {gameOver && 'Game Over'}
-      </p>
-      <p>
-        {isUserTurn ? 'User Turn' : 'Computer Turn'}
-      </p>
+      <Header {...{ isUserTurn, gameOver, onReset }} />      
       <TicTactToeBoard {...{ matrix, onClick }} />
     </div>
   )
